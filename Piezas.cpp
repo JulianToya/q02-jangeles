@@ -22,6 +22,13 @@
 **/
 Piezas::Piezas()
 {
+  board.resize(BOARD_ROWS);
+
+  for(int i = 0; i < BOARD_ROWS; ++i) {
+    board[i].resize(BOARD_COLS, Blank);
+  }
+
+  turn = X;
 }
 
 /**
@@ -30,6 +37,11 @@ Piezas::Piezas()
 **/
 void Piezas::reset()
 {
+  std::vector<Piece> temp(BOARD_COLS,Blank);
+
+  for(int i = 0; i < BOARD_ROWS; ++i) {
+    board[i] = temp;
+  }
 }
 
 /**
@@ -42,6 +54,27 @@ void Piezas::reset()
 **/ 
 Piece Piezas::dropPiece(int column)
 {
+    if(column < 0 || column > BOARD_COLS - 1) {
+      turn == X? turn = O : turn = X;
+      return Invalid;
+    }
+    
+    for(int i = 0; i < BOARD_ROWS; ++i) {
+      if(board[i][column] == Blank) {
+        board[i][column] = turn;
+        
+        if(turn == X) {
+          turn = O;
+          return X;
+        }
+        else {
+          turn = X;
+          return O;
+        }
+      }
+    }
+
+    turn == X? turn = O : turn = X;
     return Blank;
 }
 
@@ -51,7 +84,11 @@ Piece Piezas::dropPiece(int column)
 **/
 Piece Piezas::pieceAt(int row, int column)
 {
-    return Blank;
+    if(row < 0 || row > BOARD_ROWS - 1 || column < 0 || column > BOARD_COLS - 1) {
+      return Invalid;
+    }
+
+    return board[row][column];
 }
 
 /**
@@ -65,5 +102,71 @@ Piece Piezas::pieceAt(int row, int column)
 **/
 Piece Piezas::gameState()
 {
-    return Blank;
+    int xCount = 0;
+    int oCount = 0;
+    int iCount = 0;
+    Piece last;
+
+    for(int i = 0; i < BOARD_COLS; ++i) {
+      iCount = 0;
+
+      if((last = board[0][i]) == Blank) {
+        return Invalid;
+      }
+
+      for(int j = 1; j < BOARD_ROWS; ++j) {
+        if(board[j][i] == Blank) {
+          return Invalid;
+        }              
+        else if(last == board[j][i]) {
+          ++iCount;
+
+          if(last == X && iCount > xCount) {
+            xCount = iCount;  
+          }
+          else if(last == O && iCount > oCount) {
+            oCount = iCount;
+          }
+        }
+        else if(last != board[j][i]) {
+          iCount = 0;
+        }
+
+        last = board[j][i];
+      }
+    }
+
+    for(int i = 0; i < BOARD_ROWS; ++i) {
+      iCount = 0;
+
+      last = board[i][0];
+     
+      for(int j = 1; j < BOARD_COLS; ++j) {
+        if(last == board[i][j]) {
+          ++iCount;
+
+          if(last == X && iCount > xCount) {
+            xCount = iCount;  
+          }
+          else if(last == O && iCount > oCount) {
+            oCount = iCount;
+          }
+        }
+        else if(last != board[i][j]) {
+          iCount = 0;
+        }
+
+        last = board[i][j];
+      }
+    } 
+
+    if(xCount > oCount) {
+      return X;
+    }
+    else if(xCount < oCount) {
+      return O;
+    }
+    else {
+      return Blank;
+    }
 }
